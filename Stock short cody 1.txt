@@ -1,0 +1,78 @@
+function rearrangeLogData() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(); // Use the active spreadsheet
+  var sheet1 = ss.getSheetByName('Form responses');
+  var sheet2 = ss.getSheetByName('Sheet2');
+
+  // If Sheet2 does not exist, create it
+  if (!sheet2) {
+    sheet2 = ss.insertSheet('Sheet2');
+  } else {
+    sheet2.clear(); // Clear existing content
+  }
+
+  // Get the data from Sheet1
+  var range = sheet1.getDataRange();
+  var values = range.getValues();
+
+  // Prepare the header row for Sheet2
+  var newHeader = ['Branch Name', 'I Don\'t Have Shortage', 'Code', 'Model', 'CS', 'DP', 'Short', 'Remarks'];
+  sheet2.appendRow(newHeader);
+
+  // Ensure the headers are correctly identified
+  var headers = values[0].map(header => header.trim().toLowerCase());
+  var branchNameIndex = headers.indexOf('branch name'.toLowerCase());
+  var shortageIndex = headers.indexOf('i don\'t have shortage'.toLowerCase());
+  var codeIndex = headers.indexOf('code'.toLowerCase());
+  var modelIndex = headers.indexOf('model'.toLowerCase());
+  var csIndex = headers.indexOf('cs'.toLowerCase());
+  var dpIndex = headers.indexOf('dp'.toLowerCase());
+  var shortIndex = headers.indexOf('short'.toLowerCase());
+  var remarksIndex = headers.indexOf('remarks'.toLowerCase());
+
+  // Log the identified indices
+  Logger.log('Branch Name Index: ' + branchNameIndex);
+  Logger.log('Shortage Index: ' + shortageIndex);
+  Logger.log('Code Index: ' + codeIndex);
+  Logger.log('Model Index: ' + modelIndex);
+  Logger.log('CS Index: ' + csIndex);
+  Logger.log('DP Index: ' + dpIndex);
+  Logger.log('Short Index: ' + shortIndex);
+  Logger.log('Remarks Index: ' + remarksIndex);
+
+  // Function to safely get and process cell values
+  function getSafeString(value) {
+    return (value !== undefined && value !== null) ? String(value).trim() : '';
+  }
+
+  // Loop through each row in the form responses sheet
+  for (var i = 1; i < values.length; i++) { // Start from 1 to skip header
+    var row = values[i];
+    
+    // Extract relevant data with safe processing
+    var branchName = getSafeString(row[branchNameIndex]);
+    var shortage = getSafeString(row[shortageIndex]);
+    var codes = getSafeString(row[codeIndex]).split(',').map(function(s) { return s.trim(); });
+    var models = getSafeString(row[modelIndex]).split(',').map(function(s) { return s.trim(); });
+    var csValues = getSafeString(row[csIndex]).split(',').map(function(s) { return s.trim(); });
+    var dpValues = getSafeString(row[dpIndex]).split(',').map(function(s) { return s.trim(); });
+    var shorts = getSafeString(row[shortIndex]).split(',').map(function(s) { return s.trim(); });
+    var remarks = getSafeString(row[remarksIndex]).split(',').map(function(s) { return s.trim(); });
+
+    // Determine the maximum length among the split data
+    var maxLength = Math.max(codes.length, models.length, csValues.length, dpValues.length, shorts.length, remarks.length);
+
+    // Append each non-empty value to Sheet2 as a new row
+    for (var j = 0; j < maxLength; j++) {
+      sheet2.appendRow([
+        branchName,
+        shortage,
+        codes[j] || '',
+        models[j] || '',
+        csValues[j] || '',
+        dpValues[j] || '',
+        shorts[j] || '',
+        remarks[j] || ''
+      ]);
+    }
+  }
+}
